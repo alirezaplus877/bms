@@ -1,0 +1,54 @@
+﻿<#@ template debug="true" hostSpecific="true" #>
+<#@ output extension=".cs" #>
+<#@ Assembly Name="System.Data" #>   
+<#@ import namespace="System.Data" #>  
+<#@ import namespace="System.Data.SqlClient" #>     
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Text.RegularExpressions" #>                 
+<#@ import namespace="System.Collections.Generic" #>      
+<#
+    
+    string connectionString = "Data Source =192.168.30.14; Initial Catalog =PECBMS; User Id = z.hoseinzadeh; Password = Aa123456;"; 
+
+	 SqlConnection conn = new SqlConnection(connectionString);
+    string command = "SELECT [Status],[Description],[Title] FROM [dbo].[StatusDescription] order by status desc";
+    SqlCommand comm = new SqlCommand(command, conn);
+#>
+using System;
+using System.CodeDom.Compiler;
+using System.ComponentModel;
+namespace Utility
+{
+  public class Status
+  {
+	<#
+	int i=0;
+    conn.Open(); 
+    SqlDataReader reader = comm.ExecuteReader();
+	while(reader.Read()) 
+	{
+	    i=i+1; 
+	    #>    
+            [Description("<#= Pascalize(reader[1].ToString()) #>")]
+            public const short <#= Pascalize(reader[2].ToString()) #> = <#= Pascalize(reader[0].ToString()) #>;
+	    <#
+	}
+    conn.Close();
+    #>
+}
+} 
+
+<#+
+    private string Pascalize(object value)
+    {
+	return value.ToString();
+        
+    }
+
+    private string GetSubNamespace()
+    {
+        Regex rx = new Regex(@"(?:.+Services\s)");
+        string path = Path.GetDirectoryName(Host.TemplateFile);
+        return rx.Replace(path, string.Empty).Replace("\\", ".");
+    }
+#>
